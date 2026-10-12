@@ -5,12 +5,22 @@ import { contentArea, DEFAULT_GRID } from "./useGrid"
 import type { GridConfig } from "./useGrid"
 import type { Preset } from "../presets"
 
+/** Where an element's columns sat, and in which content range, before sidebar changes moved it */
+export interface ColBase {
+  colStart: number
+  colSpan: number
+  first: number
+  last: number
+}
+
 export interface LayoutState {
   elements: LayoutElement[]
   rowCount: number
   chrome: ChromeConfig
   colours: ColourTokens
   selectedId: string | null
+  /** Per-element remap origin, keyed by element id — see remapElements */
+  colBase: Record<string, ColBase>
 }
 
 const STORAGE_KEY = "pbi-layout-state"
@@ -21,6 +31,7 @@ const DEFAULT_STATE: LayoutState = {
   chrome: DEFAULT_CHROME,
   colours: DEFAULT_COLOURS,
   selectedId: null,
+  colBase: {},
 }
 
 function loadState(): LayoutState {
@@ -51,23 +62,39 @@ function contentRange(chrome: ChromeConfig): { first: number; last: number } {
   }
 }
 
-function remapElements(elements: LayoutElement[], oldChrome: ChromeConfig, newChrome: ChromeConfig): LayoutElement[] {
-  const { first: oldFirst, last: oldLast } = contentRange(oldChrome)
+/**
+ * Refit elements to the content range of a new chrome config.
+ * Squeezing columns rounds, so remapping the result back would not always
+ * return the original. Each element therefore remembers where it sat before
+ * sidebar changes started moving it (colBase), and is always refitted from
+ * there — going back to an earlier sidebar setting restores it exactly.
+ */
+export function remapElements(
+  elements: LayoutElement[],
+  oldChrome: ChromeConfig,
+  newChrome: ChromeConfig,
+  prevBase: Record<string, ColBase> = {},
+): { elements: LayoutElement[]; colBase: Record<string, ColBase> } {
+  const old = contentRange(oldChrome)
   const { first: newFirst, last: newLast } = contentRange(newChrome)
-  const oldCols = oldLast - oldFirst + 1
   const newCols = newLast - newFirst + 1
+  const colBase: Record<string, ColBase> = {}
 
-  return elements.map((el) => {
-    const offsetStart = el.colStart - oldFirst
-    const offsetEnd = offsetStart + el.colSpan - 1
-    const newOffsetStart = Math.round((offsetStart / oldCols) * newCols)
-    const newOffsetEnd = Math.round(((offsetEnd + 1) / oldCols) * newCols) - 1
+  const remapped = elements.map((el) => {
+    const base = prevBase[el.id] ?? { colStart: el.colStart, colSpan: el.colSpan, first: old.first, last: old.last }
+    colBase[el.id] = base
+    const baseCols = base.last - base.first + 1
+    const offsetStart = base.colStart - base.first
+    const offsetEnd = offsetStart + base.colSpan - 1
+    const newOffsetStart = Math.round((offsetStart / baseCols) * newCols)
+    const newOffsetEnd = Math.round(((offsetEnd + 1) / baseCols) * newCols) - 1
     const newStart = newFirst + newOffsetStart
     const newSpan = Math.max(1, newOffsetEnd - newOffsetStart + 1)
     const clampedStart = Math.max(newFirst, Math.min(newLast, newStart))
     const clampedSpan = Math.max(1, Math.min(newLast - clampedStart + 1, newSpan))
     return { ...el, colStart: clampedStart, colSpan: clampedSpan }
   })
+  return { elements: remapped, colBase }
 }
 
 const MAX_HISTORY = 50
@@ -199,10 +226,17 @@ export function useLayout(grid: GridConfig = DEFAULT_GRID) {
   }, [])
 
   const updateElement = useCallback((updated: LayoutElement) => {
-    update((prev) => ({
-      ...prev,
-      elements: prev.elements.map((el) => (el.id === updated.id ? updated : el)),
-    }))
+    update((prev) => {
+      const before = prev.elements.find((el) => el.id === updated.id)
+      const colsChanged = before && (before.colStart !== updated.colStart || before.colSpan !== updated.colSpan)
+      // A manual column change is the element's new origin for later sidebar refits
+      const { [updated.id]: _, ...restBase } = prev.colBase
+      return {
+        ...prev,
+        elements: prev.elements.map((el) => (el.id === updated.id ? updated : el)),
+        colBase: colsChanged ? restBase : prev.colBase,
+      }
+    })
   }, [])
 
   const duplicateElement = useCallback((id: string) => {
@@ -212,7 +246,9 @@ export function useLayout(grid: GridConfig = DEFAULT_GRID) {
       const copy: LayoutElement = { ...src, id: crypto.randomUUID(), label: `${src.label} copy` }
       const idx = prev.elements.findIndex((el) => el.id === id)
       const elements = [...prev.elements.slice(0, idx + 1), copy, ...prev.elements.slice(idx + 1)]
-      return { ...prev, elements, selectedId: copy.id }
+      const srcBase = prev.colBase[id]
+      const colBase = srcBase ? { ...prev.colBase, [copy.id]: srcBase } : prev.colBase
+      return { ...prev, elements, colBase, selectedId: copy.id }
     })
   }, [])
 
@@ -229,7 +265,7 @@ export function useLayout(grid: GridConfig = DEFAULT_GRID) {
   }, [])
 
   const clearElements = useCallback(() => {
-    update((prev) => ({ ...prev, elements: [], selectedId: null }))
+    update((prev) => ({ ...prev, elements: [], colBase: {}, selectedId: null }))
   }, [])
 
   const setRowCount = useCallback((n: number) => {
@@ -242,28 +278,28 @@ export function useLayout(grid: GridConfig = DEFAULT_GRID) {
   const setHeader = useCallback((v: boolean) => {
     update((prev) => {
       const newChrome = { ...prev.chrome, header: v }
-      return { ...prev, chrome: newChrome, elements: remapElements(prev.elements, prev.chrome, newChrome) }
+      return { ...prev, chrome: newChrome, ...remapElements(prev.elements, prev.chrome, newChrome, prev.colBase) }
     })
   }, [])
 
   const setFooter = useCallback((v: boolean) => {
     update((prev) => {
       const newChrome = { ...prev.chrome, footer: v }
-      return { ...prev, chrome: newChrome, elements: remapElements(prev.elements, prev.chrome, newChrome) }
+      return { ...prev, chrome: newChrome, ...remapElements(prev.elements, prev.chrome, newChrome, prev.colBase) }
     })
   }, [])
 
   const setSidebarCols = useCallback((v: SidebarCols) => {
     update((prev) => {
       const newChrome = { ...prev.chrome, sidebarCols: v }
-      return { ...prev, chrome: newChrome, elements: remapElements(prev.elements, prev.chrome, newChrome) }
+      return { ...prev, chrome: newChrome, ...remapElements(prev.elements, prev.chrome, newChrome, prev.colBase) }
     })
   }, [])
 
   const setSidebarSide = useCallback((v: SidebarSide) => {
     update((prev) => {
       const newChrome = { ...prev.chrome, sidebarSide: v }
-      return { ...prev, chrome: newChrome, elements: remapElements(prev.elements, prev.chrome, newChrome) }
+      return { ...prev, chrome: newChrome, ...remapElements(prev.elements, prev.chrome, newChrome, prev.colBase) }
     })
   }, [])
 
@@ -287,6 +323,7 @@ export function useLayout(grid: GridConfig = DEFAULT_GRID) {
       chrome: { ...preset.chrome, sidebarFilters: preset.chrome.sidebarFilters ?? prev.chrome.sidebarFilters },
       colours: prev.colours,
       selectedId: null,
+      colBase: {},
     }))
   }, [])
 
