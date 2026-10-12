@@ -1,4 +1,4 @@
-import { COL_COUNT, CANVAS_SIZES, DEFAULT_CANVAS_SIZE, DEFAULT_SIDEBAR_FILTERS } from "../constants"
+import { COL_COUNT, CANVAS_SIZES, DEFAULT_SIDEBAR_FILTERS } from "../constants"
 import type { ChromeConfig, LayoutElement, SidebarCols } from "../types"
 import type { CanvasSizeConfig } from "../constants"
 
@@ -44,8 +44,8 @@ export function gridConfigFrom(cfg: CanvasSizeConfig): GridConfig {
   }
 }
 
-/** Default grid config (1280×720) */
-export const DEFAULT_GRID: GridConfig = gridConfigFrom(CANVAS_SIZES[DEFAULT_CANVAS_SIZE])
+/** Baseline grid config (1280×720) — fallback when no grid is passed; independent of the app's default size */
+export const DEFAULT_GRID: GridConfig = gridConfigFrom(CANVAS_SIZES["1280x720"])
 
 // ─── Column geometry ─────────────────────────────────────────────────────────
 

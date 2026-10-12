@@ -80,8 +80,8 @@ export const CANVAS_SIZES: Record<CanvasSizeKey, CanvasSizeConfig> = {
   },
 }
 
-// Active canvas size — default 1280×720
-export const DEFAULT_CANVAS_SIZE: CanvasSizeKey = "1280x720"
+// Canvas size a new session starts on
+export const DEFAULT_CANVAS_SIZE: CanvasSizeKey = "1920x1080"
 
 // ─── Legacy constants (1280×720 baseline, used in tests + grid math) ──────────
 
