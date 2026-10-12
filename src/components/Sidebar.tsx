@@ -3,7 +3,7 @@ import type { CanvasSizeKey, ChromeConfig, ColourTokens, SidebarCols, SidebarSid
 import { CANVAS_SIZES, COLOUR_LABELS, DEFAULT_COLOURS } from "../constants"
 import { ColourSwatch } from "./ColourSwatch"
 import type { Preset } from "../presets"
-import { PRESETS, ICON_LAYOUTS } from "../presets"
+import { PRESETS } from "../presets"
 import { PresetIcon } from "./PresetIcon"
 import { ElementList, ElementDetail } from "./ElementList"
 import { Button } from "@/components/ui/button"
@@ -250,7 +250,7 @@ export function AppSidebar({
                     aria-label={`Load preset: ${p.name}`}
                     className="flex flex-col items-center gap-1.5 p-2 h-auto w-full hover:bg-sidebar-accent hover:border-sidebar-ring/40 hover:text-sidebar-accent-foreground"
                   >
-                    <PresetIcon layout={ICON_LAYOUTS[p.id]} fill="transparent" stroke="currentColor" accent="currentColor" />
+                    <PresetIcon preset={p} fill="transparent" stroke="currentColor" accent="currentColor" />
                     <span className="text-[9px] leading-none truncate w-full text-center text-sidebar-foreground/50">{p.name}</span>
                   </Button>
                 ))}

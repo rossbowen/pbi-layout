@@ -1,31 +1,39 @@
-import type { IconLayout } from "../presets"
+import type { Preset } from "../presets"
+import { COL_COUNT } from "../constants"
 
 interface Props {
-  layout: IconLayout
+  preset: Preset
   fill: string
   stroke: string
   accent: string
 }
 
-// Icon viewBox: 32×20, sidebar=6, content=26, up to 4 cols and 4 rows
+// Icon viewBox: 32×18 (16:9, like every canvas size). The icon is drawn from
+// the preset's own elements on the same 12-column grid as the canvas, so it
+// always matches the layout the button creates.
 const W = 32
-const H = 20
-const HDR = 3
-const FTR = 3
-const SB = 7 // sidebar width in icon units
-const GAP = 1 // gap between panels
-const EDGE = 1 // edge gutter matching real canvas
+const H = 18
+const HDR = 2.5
+const FTR = 2
+const EDGE = 1 // edge gutter
+const COL_GAP = 0.6 // gap between columns
+const ROW_GAP = 0.8 // gap between rows
 
-export function PresetIcon({ layout, fill, stroke, accent }: Props) {
-  const top = HDR + EDGE
-  const bottom = H - FTR - EDGE
-  const left = (layout.sidebar ? SB : 0) + EDGE
-  const right = W - EDGE
-  const contentW = right - left
-  const contentH = bottom - top
+const COL_W = (W - EDGE * 2 - COL_GAP * (COL_COUNT - 1)) / COL_COUNT
 
-  const colW = (contentW - GAP * 3) / 4 // 4 icon columns
-  const rowH = (contentH - GAP * (layout.rows - 1)) / layout.rows
+const colLeft = (n: number) => EDGE + (n - 1) * (COL_W + COL_GAP)
+const spanWidth = (s: number) => s * COL_W + (s - 1) * COL_GAP
+
+export function PresetIcon({ preset, fill, stroke, accent }: Props) {
+  const { chrome, rowCount, elements } = preset
+  const chromeTop = chrome.header ? HDR : 0
+  const chromeBottom = H - (chrome.footer ? FTR : 0)
+  const top = chromeTop + ROW_GAP
+  const contentH = chromeBottom - ROW_GAP - top
+  const rowH = (contentH - ROW_GAP * (rowCount - 1)) / rowCount
+
+  const sbW = chrome.sidebarCols > 0 ? colLeft(chrome.sidebarCols) + COL_W : 0
+  const sbX = chrome.sidebarSide === "right" ? W - sbW : 0
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ display: "block", width: "100%", height: "auto" }} aria-hidden="true">
@@ -33,22 +41,31 @@ export function PresetIcon({ layout, fill, stroke, accent }: Props) {
       <rect x={0} y={0} width={W} height={H} fill={fill} rx={1.5} />
 
       {/* Header */}
-      <rect x={0} y={0} width={W} height={HDR} fill={accent} rx={1} />
+      {chrome.header && <rect x={0} y={0} width={W} height={HDR} fill={accent} rx={1} />}
 
       {/* Footer */}
-      <rect x={0} y={H - FTR} width={W} height={FTR} fill={stroke} opacity={0.15} rx={1} />
+      {chrome.footer && <rect x={0} y={H - FTR} width={W} height={FTR} fill={stroke} opacity={0.15} rx={1} />}
 
       {/* Sidebar */}
-      {layout.sidebar && <rect x={0} y={top} width={SB - GAP} height={contentH} fill={stroke} opacity={0.2} rx={0.5} />}
+      {sbW > 0 && (
+        <rect x={sbX} y={chromeTop} width={sbW} height={chromeBottom - chromeTop} fill={stroke} opacity={0.2} />
+      )}
 
       {/* Content panels */}
-      {layout.panels.map((p, i) => {
-        const px = left + (p.col - 1) * (colW + GAP)
-        const py = top + (p.row - 1) * (rowH + GAP)
-        const pw = p.span * colW + (p.span - 1) * GAP
-        const rs = p.rowSpan ?? 1
-        const ph = rs * rowH + (rs - 1) * GAP
-        return <rect key={i} x={px} y={py} width={pw} height={ph} fill={stroke} opacity={0.4} rx={0.5} />
+      {elements.map((el) => {
+        const rs = Math.min(el.rowSpan ?? 1, rowCount - el.row + 1)
+        return (
+          <rect
+            key={el.id}
+            x={colLeft(el.colStart)}
+            y={top + (el.row - 1) * (rowH + ROW_GAP)}
+            width={spanWidth(el.colSpan)}
+            height={rs * rowH + (rs - 1) * ROW_GAP}
+            fill={stroke}
+            opacity={0.4}
+            rx={0.5}
+          />
+        )
       })}
 
       {/* Border */}

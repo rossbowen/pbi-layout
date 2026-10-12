@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import type { ChromeConfig, ColourTokens, LayoutElement } from "../types"
-import { HEADER_H, FOOTER_H } from "../constants"
 import { colBands, colLeft, elementBounds, contentArea, rowTop, sidebarWidth, DEFAULT_GRID } from "../hooks/useGrid"
 import type { GridConfig } from "../hooks/useGrid"
 
@@ -808,7 +807,7 @@ export function Canvas({
               left: 0,
               top: 0,
               width: displayW,
-              height: HEADER_H * scale,
+              height: grid.headerH * scale,
               background: colours.headerBg,
               display: "flex",
               alignItems: "center",
@@ -836,7 +835,7 @@ export function Canvas({
                 letterSpacing: 0,
               }}
             >
-              h: {HEADER_H}px
+              h: {grid.headerH}px
             </span>
           </div>
         )}
@@ -848,9 +847,9 @@ export function Canvas({
             style={{
               position: "absolute",
               left: 0,
-              top: displayH - FOOTER_H * scale,
+              top: displayH - grid.footerH * scale,
               width: displayW,
-              height: FOOTER_H * scale,
+              height: grid.footerH * scale,
               background: colours.footerBg,
               borderTop: `0.5px solid ${contrastColour(colours.footerBg) === "#ffffff" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.10)"}`,
               display: "flex",
@@ -869,7 +868,7 @@ export function Canvas({
                 color: contrastDim(colours.footerBg),
               }}
             >
-              h: {FOOTER_H}px
+              h: {grid.footerH}px
             </span>
           </div>
         )}
@@ -879,8 +878,8 @@ export function Canvas({
           (() => {
             const isRight = chrome.sidebarSide === "right"
             const sw = sidebarWidth(chrome.sidebarCols, grid) * scale
-            const sidebarTop = (chrome.header ? HEADER_H : 0) * scale
-            const sidebarH = displayH - sidebarTop - (chrome.footer ? FOOTER_H : 0) * scale
+            const sidebarTop = (chrome.header ? grid.headerH : 0) * scale
+            const sidebarH = displayH - sidebarTop - (chrome.footer ? grid.footerH : 0) * scale
             const swLogical = Math.round(sidebarWidth(chrome.sidebarCols, grid))
             return (
               <div

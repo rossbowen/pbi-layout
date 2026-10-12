@@ -1,4 +1,4 @@
-export type CanvasSizeKey = "1280x720" | "1440x1080" | "1920x1080"
+export type CanvasSizeKey = "1280x720" | "1920x1080" | "2560x1440" | "3840x2160"
 
 // Sidebar width in logical px — always aligns to the column grid right edge
 // Off=0, 2-col = right edge of col 2 = 17 + 2*106 - 26 = 203px, 3-col = 17 + 3*106 - 26 = 309px

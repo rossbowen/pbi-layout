@@ -1,4 +1,4 @@
-import { HEADER_H, FOOTER_H, ROW_SNAP, ROW_GAP, COL_COUNT, CANVAS_SIZES, DEFAULT_CANVAS_SIZE } from "../constants"
+import { COL_COUNT, CANVAS_SIZES, DEFAULT_CANVAS_SIZE } from "../constants"
 import type { ChromeConfig, LayoutElement, SidebarCols } from "../types"
 import type { CanvasSizeConfig } from "../constants"
 
@@ -19,11 +19,29 @@ export interface GridConfig {
   colWidth: number
   /** Inter-column gutter (px) */
   colGutter: number
+  /** Header bar height (px) */
+  headerH: number
+  /** Footer bar height (px) */
+  footerH: number
+  /** Gap between rows, and above/below the content area (px) */
+  rowGap: number
+  /** Row heights snap to multiples of this (px) */
+  rowSnap: number
 }
 
 /** Derive GridConfig from a CanvasSizeConfig */
 export function gridConfigFrom(cfg: CanvasSizeConfig): GridConfig {
-  return { w: cfg.w, h: cfg.h, edgeGutter: cfg.edgeGutter, colWidth: cfg.colWidth, colGutter: cfg.colGutter }
+  return {
+    w: cfg.w,
+    h: cfg.h,
+    edgeGutter: cfg.edgeGutter,
+    colWidth: cfg.colWidth,
+    colGutter: cfg.colGutter,
+    headerH: cfg.headerH,
+    footerH: cfg.footerH,
+    rowGap: cfg.rowGap,
+    rowSnap: cfg.rowSnap,
+  }
 }
 
 /** Default grid config (1280×720) */
@@ -67,8 +85,8 @@ export interface ContentArea {
 }
 
 export function contentArea(chrome: ChromeConfig, g: GridConfig = DEFAULT_GRID): ContentArea {
-  const top = (chrome.header ? HEADER_H : 0) + ROW_GAP
-  const bottom = g.h - (chrome.footer ? FOOTER_H : 0) - ROW_GAP
+  const top = (chrome.header ? g.headerH : 0) + g.rowGap
+  const bottom = g.h - (chrome.footer ? g.footerH : 0) - g.rowGap
   const isRight = chrome.sidebarCols > 0 && chrome.sidebarSide === "right"
   const isLeft = chrome.sidebarCols > 0 && chrome.sidebarSide !== "right"
   const left = isLeft ? sidebarWidth(chrome.sidebarCols, g) : 0
@@ -80,24 +98,24 @@ export function contentArea(chrome: ChromeConfig, g: GridConfig = DEFAULT_GRID):
 // ─── Row geometry ─────────────────────────────────────────────────────────────
 
 /**
- * Base row height: snap all rows to ROW_SNAP, derived from equal division.
+ * Base row height: snap all rows to rowSnap, derived from equal division.
  * The last row(s) receive the remainder to fill the content area exactly.
  *
- * Strategy: first (rowCount-1) rows are equal and ROW_SNAP-aligned.
+ * Strategy: first (rowCount-1) rows are equal and rowSnap-aligned.
  * For 4 rows: first 2 snapped, last 2 share remainder (snapped + residual).
  * This guarantees no wasted space at the bottom regardless of rounding.
  */
 export function rowHeight(rowCount: number, chrome: ChromeConfig, g: GridConfig = DEFAULT_GRID): number {
   const area = contentArea(chrome, g)
-  const totalGaps = (rowCount - 1) * ROW_GAP
-  return Math.floor((area.height - totalGaps) / rowCount / ROW_SNAP) * ROW_SNAP
+  const totalGaps = (rowCount - 1) * g.rowGap
+  return Math.floor((area.height - totalGaps) / rowCount / g.rowSnap) * g.rowSnap
 }
 
 /** Height of row r (1-based). Last row(s) absorb rounding remainder to fill content exactly. */
 export function rowHeightFor(r: number, rowCount: number, chrome: ChromeConfig, g: GridConfig = DEFAULT_GRID): number {
   const area = contentArea(chrome, g)
-  const totalGaps = (rowCount - 1) * ROW_GAP
-  const base = Math.floor((area.height - totalGaps) / rowCount / ROW_SNAP) * ROW_SNAP
+  const totalGaps = (rowCount - 1) * g.rowGap
+  const base = Math.floor((area.height - totalGaps) / rowCount / g.rowSnap) * g.rowSnap
 
   if (rowCount <= 2) {
     // Last row gets the exact remainder
@@ -109,7 +127,7 @@ export function rowHeightFor(r: number, rowCount: number, chrome: ChromeConfig, 
   }
   // 4 rows: rows 1–2 are base; rows 3–4 share remainder
   const remainder = area.height - base * 2 - totalGaps
-  const eachLast = Math.floor(remainder / 2 / ROW_SNAP) * ROW_SNAP
+  const eachLast = Math.floor(remainder / 2 / g.rowSnap) * g.rowSnap
   if (r <= 2) return base
   if (r === 3) return eachLast
   return remainder - eachLast // row 4 picks up any residual
@@ -120,7 +138,7 @@ export function rowTop(r: number, rowCount: number, chrome: ChromeConfig, g: Gri
   const area = contentArea(chrome, g)
   let top = area.top
   for (let i = 1; i < r; i++) {
-    top += rowHeightFor(i, rowCount, chrome, g) + ROW_GAP
+    top += rowHeightFor(i, rowCount, chrome, g) + g.rowGap
   }
   return top
 }
@@ -146,7 +164,7 @@ export function elementBounds(
   let height = 0
   for (let r = el.row; r <= lastRow; r++) {
     height += rowHeightFor(r, rowCount, chrome, g)
-    if (r < lastRow) height += ROW_GAP
+    if (r < lastRow) height += g.rowGap
   }
   return {
     x: colLeft(el.colStart, g),

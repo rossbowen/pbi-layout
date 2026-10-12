@@ -1,6 +1,5 @@
 import type { LayoutElement, ChromeConfig } from "../types"
 import { elementBounds, sidebarWidth, DEFAULT_GRID, type GridConfig } from "../hooks/useGrid"
-import { HEADER_H, FOOTER_H } from "../constants"
 import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
@@ -58,14 +57,14 @@ export function SpecTable({
       x: 0,
       y: 0,
       w: grid.w,
-      h: HEADER_H,
+      h: grid.headerH,
     })
   }
 
   if (chrome.sidebarCols > 0) {
     const sw = sidebarWidth(chrome.sidebarCols, grid)
-    const top = chrome.header ? HEADER_H : 0
-    const bottom = grid.h - (chrome.footer ? FOOTER_H : 0)
+    const top = chrome.header ? grid.headerH : 0
+    const bottom = grid.h - (chrome.footer ? grid.footerH : 0)
     const isRight = chrome.sidebarSide === "right"
     const sideLabel = chrome.sidebarCols === 3 ? "wide" : "2-col"
     rows.push({
@@ -104,9 +103,9 @@ export function SpecTable({
       name: "Footer",
       type: "chrome",
       x: 0,
-      y: grid.h - FOOTER_H,
+      y: grid.h - grid.footerH,
       w: grid.w,
-      h: FOOTER_H,
+      h: grid.footerH,
     })
   }
 

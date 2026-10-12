@@ -11,22 +11,73 @@ export interface CanvasSizeConfig {
   edgeGutter: number
   colWidth: number
   colGutter: number
+  // Vertical metrics, scaled with the canvas so proportions hold at every size
+  headerH: number
+  footerH: number
+  rowGap: number
+  rowSnap: number
 }
 
 // Grid formula for width W: edge + 12*col + 11*gutter + edge = W
-// We keep col:gutter ratio ≈ 80:26 (≈3.08:1) and solve for integers.
-// 1280: 17 + 12*80 + 11*26 + 17 = 1280 ✓
-// 1440: scale 1440/1280 → edge≈19, col≈90, gutter≈29 → 19+12*90+11*29+19=1438 ≈ adjust to edge=21
-//        21 + 12*90 + 11*29 + 21 = 42+1080+319 = 1441 → use edge=20, col=90, gutter=29: 40+1080+319=1439 → edge=21,col=90,gutter=28: 42+1080+308=1430
-//        Simplest: scale proportionally and round. 1440/1280=1.125 → col=90, gutter=29, edge=19: 38+1080+319=1437, add 3 to edges → edge=20.5→21: 42+1080+319=1441. Use edge=19,col=90,gutter=29,last_edge=22: not symmetric.
-//        Just use: 1440 → edge=20, col=90, gutter=29: 2*20+12*90+11*29=40+1080+319=1439. Close enough, +1 to first edge=21: 1440 ✓
-// 1920: 1920/1280=1.5 → col=120, gutter=39, edge=25.5→26: 2*26+12*120+11*39=52+1440+429=1921 → edge=25: 50+1440+429=1919 → edge=26,gutter=38: 52+1440+418=1910.
-//        Use col=120,gutter=40,edge=20: 40+1440+440=1920 ✓
+// 1280: 17 + 12*80  + 11*26 + 17 = 1280 ✓
+// 1920: 20 + 12*120 + 11*40 + 20 = 1920 ✓ (1.5× of 1280 isn't integral, so edge/gutter are rounded)
+// 2560: 34 + 12*160 + 11*52 + 34 = 2560 ✓ (2× of 1280)
+// 3840: 51 + 12*240 + 11*78 + 51 = 3840 ✓ (3× of 1280)
+// Display scale is 640 / w so every size previews at 640×360.
 
 export const CANVAS_SIZES: Record<CanvasSizeKey, CanvasSizeConfig> = {
-  "1280x720": { label: "1280×720", w: 1280, h: 720, scale: 0.5, edgeGutter: 17, colWidth: 80, colGutter: 26 },
-  "1440x1080": { label: "1440×1080", w: 1440, h: 1080, scale: 0.444, edgeGutter: 20, colWidth: 80, colGutter: 40 },
-  "1920x1080": { label: "1920×1080", w: 1920, h: 1080, scale: 0.333, edgeGutter: 20, colWidth: 120, colGutter: 40 },
+  "1280x720": {
+    label: "1280×720",
+    w: 1280,
+    h: 720,
+    scale: 640 / 1280,
+    edgeGutter: 17,
+    colWidth: 80,
+    colGutter: 26,
+    headerH: 60,
+    footerH: 40,
+    rowGap: 20,
+    rowSnap: 20,
+  },
+  "1920x1080": {
+    label: "1920×1080",
+    w: 1920,
+    h: 1080,
+    scale: 640 / 1920,
+    edgeGutter: 20,
+    colWidth: 120,
+    colGutter: 40,
+    headerH: 90,
+    footerH: 60,
+    rowGap: 30,
+    rowSnap: 30,
+  },
+  "2560x1440": {
+    label: "2560×1440",
+    w: 2560,
+    h: 1440,
+    scale: 640 / 2560,
+    edgeGutter: 34,
+    colWidth: 160,
+    colGutter: 52,
+    headerH: 120,
+    footerH: 80,
+    rowGap: 40,
+    rowSnap: 40,
+  },
+  "3840x2160": {
+    label: "3840×2160",
+    w: 3840,
+    h: 2160,
+    scale: 640 / 3840,
+    edgeGutter: 51,
+    colWidth: 240,
+    colGutter: 78,
+    headerH: 180,
+    footerH: 120,
+    rowGap: 60,
+    rowSnap: 60,
+  },
 }
 
 // Active canvas size — default 1280×720
@@ -52,7 +103,7 @@ export const COL_GUTTER = 26
 export const COL_COUNT = 12
 export const COL_STRIDE = COL_WIDTH + COL_GUTTER // 106
 
-// Chrome heights (logical px)
+// Chrome heights (logical px, 1280×720 — other sizes use CANVAS_SIZES)
 export const HEADER_H = 60
 export const FOOTER_H = 40
 

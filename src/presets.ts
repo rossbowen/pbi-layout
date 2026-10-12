@@ -10,20 +10,6 @@ export interface Preset {
   elements: LayoutElement[]
 }
 
-// ─── Icon layout descriptor (for PresetIcon SVG) ─────────────────────────────
-
-export interface IconPanel {
-  row: number
-  col: number
-  span: number
-  rowSpan?: number // all 1-based, out of 4 cols / N rows in icon space
-}
-export interface IconLayout {
-  sidebar: boolean
-  rows: number
-  panels: IconPanel[]
-}
-
 // ─── Helper ──────────────────────────────────────────────────────────────────
 
 function el(id: string, label: string, row: number, colStart: number, colSpan: number, rowSpan = 1): LayoutElement {
@@ -153,6 +139,154 @@ export const PRESETS: Preset[] = [
       el("tr4", "Bot right", 3, 6, 7),
     ],
   },
+  {
+    id: "1x4",
+    name: "1×4",
+    chrome: chrome(0),
+    rowCount: 1,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("h1", "Left", 1, 1, 3),
+      el("h2", "Centre left", 1, 4, 3),
+      el("h3", "Centre right", 1, 7, 3),
+      el("h4", "Right", 1, 10, 3),
+    ],
+  },
+  {
+    id: "2x4",
+    name: "2×4",
+    chrome: chrome(0),
+    rowCount: 2,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("i1", "Row 1 col 1", 1, 1, 3),
+      el("i2", "Row 1 col 2", 1, 4, 3),
+      el("i3", "Row 1 col 3", 1, 7, 3),
+      el("i4", "Row 1 col 4", 1, 10, 3),
+      el("i5", "Row 2 col 1", 2, 1, 3),
+      el("i6", "Row 2 col 2", 2, 4, 3),
+      el("i7", "Row 2 col 3", 2, 7, 3),
+      el("i8", "Row 2 col 4", 2, 10, 3),
+    ],
+  },
+  {
+    id: "3x3",
+    name: "3×3",
+    chrome: chrome(0),
+    rowCount: 3,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("j1", "Row 1 col 1", 1, 1, 4),
+      el("j2", "Row 1 col 2", 1, 5, 4),
+      el("j3", "Row 1 col 3", 1, 9, 4),
+      el("j4", "Row 2 col 1", 2, 1, 4),
+      el("j5", "Row 2 col 2", 2, 5, 4),
+      el("j6", "Row 2 col 3", 2, 9, 4),
+      el("j7", "Row 3 col 1", 3, 1, 4),
+      el("j8", "Row 3 col 2", 3, 5, 4),
+      el("j9", "Row 3 col 3", 3, 9, 4),
+    ],
+  },
+  {
+    id: "wide-3",
+    name: "Wide + 3",
+    chrome: chrome(0),
+    rowCount: 2,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("w1", "Wide", 1, 1, 12),
+      el("w2", "Left", 2, 1, 4),
+      el("w3", "Centre", 2, 5, 4),
+      el("w4", "Right", 2, 9, 4),
+    ],
+  },
+  {
+    id: "3-wide",
+    name: "3 + wide",
+    chrome: chrome(0),
+    rowCount: 2,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("x1", "Left", 1, 1, 4),
+      el("x2", "Centre", 1, 5, 4),
+      el("x3", "Right", 1, 9, 4),
+      el("x4", "Wide", 2, 1, 12),
+    ],
+  },
+  {
+    id: "tall-right",
+    name: "Tall right",
+    chrome: chrome(0),
+    rowCount: 2,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("tt1", "Top left", 1, 1, 7),
+      el("tt2", "Bottom left", 2, 1, 7),
+      el("tt3", "Tall chart", 1, 8, 5, 2), // spans both rows,
+    ],
+  },
+  {
+    id: "kpi-main",
+    name: "KPI + main",
+    chrome: chrome(0),
+    rowCount: 4,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("m1", "KPI 1", 1, 1, 3),
+      el("m2", "KPI 2", 1, 4, 3),
+      el("m3", "KPI 3", 1, 7, 3),
+      el("m4", "KPI 4", 1, 10, 3),
+      el("m5", "Main visual", 2, 1, 12, 3), // spans rows 2–4,
+    ],
+  },
+  {
+    id: "kpi-2",
+    name: "KPI + 2",
+    chrome: chrome(0),
+    rowCount: 4,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("n1", "KPI 1", 1, 1, 3),
+      el("n2", "KPI 2", 1, 4, 3),
+      el("n3", "KPI 3", 1, 7, 3),
+      el("n4", "KPI 4", 1, 10, 3),
+      el("n5", "Left", 2, 1, 6, 3),
+      el("n6", "Right", 2, 7, 6, 3),
+    ],
+  },
+  {
+    id: "kpi-3",
+    name: "KPI + 3",
+    chrome: chrome(0),
+    rowCount: 4,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("o1", "KPI 1", 1, 1, 2),
+      el("o2", "KPI 2", 1, 3, 2),
+      el("o3", "KPI 3", 1, 5, 2),
+      el("o4", "KPI 4", 1, 7, 2),
+      el("o5", "KPI 5", 1, 9, 2),
+      el("o6", "KPI 6", 1, 11, 2),
+      el("o7", "Left", 2, 1, 4, 3),
+      el("o8", "Centre", 2, 5, 4, 3),
+      el("o9", "Right", 2, 9, 4, 3),
+    ],
+  },
+  {
+    id: "kpi-2x2",
+    name: "KPI + 2×2",
+    chrome: chrome(0),
+    rowCount: 3,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("q1", "KPI 1", 1, 1, 3),
+      el("q2", "KPI 2", 2, 1, 3),
+      el("q3", "KPI 3", 3, 1, 3),
+      el("q4", "Top left", 1, 4, 5),
+      el("q5", "Top right", 1, 9, 4),
+      el("q6", "Main", 2, 4, 9, 2), // spans rows 2–3,
+    ],
+  },
 
   // ── Sidebar presets ───────────────────────────────────────────────────────
 
@@ -209,147 +343,71 @@ export const PRESETS: Preset[] = [
     colours: DEFAULT_COLOURS,
     elements: [el("u1", "Full width", 1, 4, 9), el("u2", "Main", 2, 4, 6), el("u3", "Detail", 2, 10, 3)],
   },
+  {
+    id: "sb-full",
+    name: "Sidebar full",
+    chrome: chrome(2),
+    rowCount: 1,
+    colours: DEFAULT_COLOURS,
+    elements: [el("sf1", "Main visual", 1, 3, 10)],
+  },
+  {
+    id: "sb-1x2",
+    name: "Sidebar 1×2",
+    chrome: chrome(2),
+    rowCount: 1,
+    colours: DEFAULT_COLOURS,
+    elements: [el("sa1", "Left", 1, 3, 5), el("sa2", "Right", 1, 8, 5)],
+  },
+  {
+    id: "sb-2x1",
+    name: "Sidebar 2×1",
+    chrome: chrome(2),
+    rowCount: 2,
+    colours: DEFAULT_COLOURS,
+    elements: [el("sc1", "Top", 1, 3, 10), el("sc2", "Bottom", 2, 3, 10)],
+  },
+  {
+    id: "sb-tall",
+    name: "Sidebar tall",
+    chrome: chrome(2),
+    rowCount: 2,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("sd1", "Tall chart", 1, 3, 4, 2), // spans both rows,
+      el("sd2", "Top right", 1, 7, 6),
+      el("sd3", "Bottom right", 2, 7, 6),
+    ],
+  },
+  {
+    id: "sb-kpi-2",
+    name: "Sidebar KPI",
+    chrome: chrome(2),
+    rowCount: 4,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("se1", "KPI 1", 1, 3, 2),
+      el("se2", "KPI 2", 1, 5, 2),
+      el("se3", "KPI 3", 1, 7, 2),
+      el("se4", "KPI 4", 1, 9, 2),
+      el("se5", "KPI 5", 1, 11, 2),
+      el("se6", "Left", 2, 3, 5, 3),
+      el("se7", "Right", 2, 8, 5, 3),
+    ],
+  },
+  {
+    id: "sb3-2x3",
+    name: "Wide 2×3",
+    chrome: chrome(3),
+    rowCount: 2,
+    colours: DEFAULT_COLOURS,
+    elements: [
+      el("sg1", "Row 1 col 1", 1, 4, 3),
+      el("sg2", "Row 1 col 2", 1, 7, 3),
+      el("sg3", "Row 1 col 3", 1, 10, 3),
+      el("sg4", "Row 2 col 1", 2, 4, 3),
+      el("sg5", "Row 2 col 2", 2, 7, 3),
+      el("sg6", "Row 2 col 3", 2, 10, 3),
+    ],
+  },
 ]
-
-// ─── Icon layout map ─────────────────────────────────────────────────────────
-// Icon space: 4 content columns, up to 4 rows, optional sidebar block
-
-export const ICON_LAYOUTS: Record<string, IconLayout> = {
-  full: { sidebar: false, rows: 1, panels: [{ row: 1, col: 1, span: 4 }] },
-  "1x2": {
-    sidebar: false,
-    rows: 1,
-    panels: [
-      { row: 1, col: 1, span: 2 },
-      { row: 1, col: 3, span: 2 },
-    ],
-  },
-  "2x1": {
-    sidebar: false,
-    rows: 2,
-    panels: [
-      { row: 1, col: 1, span: 4 },
-      { row: 2, col: 1, span: 4 },
-    ],
-  },
-  "1x3": {
-    sidebar: false,
-    rows: 1,
-    panels: [
-      { row: 1, col: 1, span: 1 },
-      { row: 1, col: 2, span: 1 },
-      { row: 1, col: 3, span: 1 },
-      { row: 1, col: 4, span: 1 },
-    ],
-  },
-  "2x2": {
-    sidebar: false,
-    rows: 2,
-    panels: [
-      { row: 1, col: 1, span: 2 },
-      { row: 1, col: 3, span: 2 },
-      { row: 2, col: 1, span: 2 },
-      { row: 2, col: 3, span: 2 },
-    ],
-  },
-  "2x3": {
-    sidebar: false,
-    rows: 2,
-    panels: [
-      { row: 1, col: 1, span: 1 },
-      { row: 1, col: 2, span: 1 },
-      { row: 1, col: 3, span: 1 },
-      { row: 1, col: 4, span: 1 },
-      { row: 2, col: 1, span: 1 },
-      { row: 2, col: 2, span: 1 },
-      { row: 2, col: 3, span: 1 },
-      { row: 2, col: 4, span: 1 },
-    ],
-  },
-  "3x2": {
-    sidebar: false,
-    rows: 3,
-    panels: [
-      { row: 1, col: 1, span: 2 },
-      { row: 1, col: 3, span: 2 },
-      { row: 2, col: 1, span: 2 },
-      { row: 2, col: 3, span: 2 },
-      { row: 3, col: 1, span: 2 },
-      { row: 3, col: 3, span: 2 },
-    ],
-  },
-  hero2: {
-    sidebar: false,
-    rows: 2,
-    panels: [
-      { row: 1, col: 1, span: 3 },
-      { row: 1, col: 4, span: 1 },
-      { row: 2, col: 1, span: 3 },
-      { row: 2, col: 4, span: 1 },
-    ],
-  },
-  "tall-left": {
-    sidebar: false,
-    rows: 2,
-    panels: [
-      { row: 1, col: 1, span: 1, rowSpan: 2 },
-      { row: 1, col: 2, span: 3 },
-      { row: 2, col: 2, span: 3 },
-    ],
-  },
-  "tall-left-3": {
-    sidebar: false,
-    rows: 3,
-    panels: [
-      { row: 1, col: 1, span: 1, rowSpan: 3 },
-      { row: 1, col: 2, span: 3 },
-      { row: 2, col: 2, span: 3 },
-      { row: 3, col: 2, span: 3 },
-    ],
-  },
-  "sb-2x2": {
-    sidebar: true,
-    rows: 2,
-    panels: [
-      { row: 1, col: 1, span: 2 },
-      { row: 1, col: 3, span: 2 },
-      { row: 2, col: 1, span: 2 },
-      { row: 2, col: 3, span: 2 },
-    ],
-  },
-  "sb-kpi-hero": {
-    sidebar: true,
-    rows: 3,
-    panels: [
-      { row: 1, col: 1, span: 1 },
-      { row: 1, col: 2, span: 1 },
-      { row: 1, col: 3, span: 1 },
-      { row: 1, col: 4, span: 1 },
-      { row: 2, col: 1, span: 3 },
-      { row: 2, col: 4, span: 1 },
-      { row: 3, col: 1, span: 3 },
-      { row: 3, col: 4, span: 1 },
-    ],
-  },
-  "sb3-hero-triple": {
-    sidebar: true,
-    rows: 2,
-    panels: [
-      { row: 1, col: 1, span: 3 },
-      { row: 1, col: 4, span: 1 },
-      { row: 2, col: 1, span: 1 },
-      { row: 2, col: 2, span: 1 },
-      { row: 2, col: 3, span: 1 },
-      { row: 2, col: 4, span: 1 },
-    ],
-  },
-  "sb3-full-21": {
-    sidebar: true,
-    rows: 2,
-    panels: [
-      { row: 1, col: 1, span: 4 },
-      { row: 2, col: 1, span: 3 },
-      { row: 2, col: 4, span: 1 },
-    ],
-  },
-}

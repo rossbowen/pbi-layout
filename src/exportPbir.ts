@@ -12,7 +12,7 @@
 import type { ChromeConfig, ColourTokens, LayoutElement, CanvasSizeKey } from "./types"
 import { elementBounds } from "./hooks/useGrid"
 import type { GridConfig } from "./hooks/useGrid"
-import { HEADER_H, FOOTER_H, CANVAS_SIZES } from "./constants"
+import { CANVAS_SIZES } from "./constants"
 import { sidebarWidth } from "./hooks/useGrid"
 
 // ─── Minimal zip writer ───────────────────────────────────────────────────────
@@ -288,7 +288,7 @@ export function exportPbir(opts: PbirExportOptions): void {
   if (chrome.header) {
     files.push({
       name: `${folderName}/definition/pages/${pageName}/visuals/Header/visual.json`,
-      data: makeVisualJson("Header", 0, 0, canvasW, HEADER_H, colours.headerBg, tabOrder++),
+      data: makeVisualJson("Header", 0, 0, canvasW, grid.headerH, colours.headerBg, tabOrder++),
     })
   }
 
@@ -298,9 +298,9 @@ export function exportPbir(opts: PbirExportOptions): void {
       data: makeVisualJson(
         "Footer",
         0,
-        canvasH - FOOTER_H,
+        canvasH - grid.footerH,
         canvasW,
-        FOOTER_H,
+        grid.footerH,
         colours.footerBg,
         tabOrder++,
       ),
@@ -309,8 +309,8 @@ export function exportPbir(opts: PbirExportOptions): void {
 
   if (chrome.sidebarCols > 0) {
     const sw = sidebarWidth(chrome.sidebarCols, grid)
-    const sidebarTop = chrome.header ? HEADER_H : 0
-    const sidebarH = canvasH - sidebarTop - (chrome.footer ? FOOTER_H : 0)
+    const sidebarTop = chrome.header ? grid.headerH : 0
+    const sidebarH = canvasH - sidebarTop - (chrome.footer ? grid.footerH : 0)
     const sidebarX = chrome.sidebarSide === "right" ? canvasW - sw : 0
     files.push({
       name: `${folderName}/definition/pages/${pageName}/visuals/Sidebar/visual.json`,

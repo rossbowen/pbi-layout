@@ -174,7 +174,7 @@ export function App() {
     decodeLayout(param).then((state) => {
       if (!state) return
       clearLayoutParam()
-      if (state.canvasSize) handleCanvasSize(state.canvasSize)
+      if (state.canvasSize in CANVAS_SIZES) handleCanvasSize(state.canvasSize)
       layout.loadPreset({
         id: "shared",
         name: "Shared layout",
