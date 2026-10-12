@@ -6,11 +6,15 @@ export type SidebarCols = 0 | 2 | 3
 
 export type SidebarSide = "left" | "right"
 
+// Number of filter (slicer) slots stacked in the sidebar
+export type SidebarFilters = 6 | 8
+
 export interface ChromeConfig {
   header: boolean
   footer: boolean
   sidebarCols: SidebarCols
   sidebarSide: SidebarSide
+  sidebarFilters?: SidebarFilters // absent in older saved/shared layouts — falls back to the default
 }
 
 export interface ColourTokens {

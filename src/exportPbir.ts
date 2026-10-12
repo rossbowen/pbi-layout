@@ -10,7 +10,7 @@
  */
 
 import type { ChromeConfig, ColourTokens, LayoutElement, CanvasSizeKey } from "./types"
-import { elementBounds } from "./hooks/useGrid"
+import { elementBounds, sidebarFilterBounds } from "./hooks/useGrid"
 import type { GridConfig } from "./hooks/useGrid"
 import { CANVAS_SIZES } from "./constants"
 import { sidebarWidth } from "./hooks/useGrid"
@@ -323,6 +323,13 @@ export function exportPbir(opts: PbirExportOptions): void {
         colours.sidebarBg,
         tabOrder++,
       ),
+    })
+    sidebarFilterBounds(chrome, grid).forEach((b, i) => {
+      const name = `Filter_${i + 1}`
+      files.push({
+        name: `${folderName}/definition/pages/${pageName}/visuals/${name}/visual.json`,
+        data: makeVisualJson(name, b.x, b.y, b.width, b.height, colours.elementFill, tabOrder++),
+      })
     })
   }
 

@@ -71,8 +71,9 @@ export function HelpSheet() {
 
           <Section title="Spacing">
             <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-              If you’re using a sidebar for slicers, give it 17 to 20 pixels of internal padding so the controls don’t
-              sit flush against the edge.
+              The sidebar has 6 or 8 filter slots, one slicer in each. Slots are inset from both sides of the sidebar
+              by the canvas margin, and line up with the top of the first row and the bottom of the last. The spec
+              table lists each slot. Eight slots on a 720px page are about as short as a dropdown slicer can go.
             </p>
             <p className="text-xs text-muted-foreground leading-relaxed mb-3">
               The header and footer should use the same left and right padding as the canvas margins. This keeps

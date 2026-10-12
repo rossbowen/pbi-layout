@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react"
-import type { ChromeConfig, ColourTokens, LayoutElement, SidebarCols, SidebarSide } from "../types"
+import type { ChromeConfig, ColourTokens, LayoutElement, SidebarCols, SidebarFilters, SidebarSide } from "../types"
 import { DEFAULT_CHROME, DEFAULT_COLOURS } from "../constants"
 import { contentArea, DEFAULT_GRID } from "./useGrid"
 import type { GridConfig } from "./useGrid"
@@ -267,6 +267,10 @@ export function useLayout(grid: GridConfig = DEFAULT_GRID) {
     })
   }, [])
 
+  const setSidebarFilters = useCallback((v: SidebarFilters) => {
+    update((prev) => ({ ...prev, chrome: { ...prev.chrome, sidebarFilters: v } }))
+  }, [])
+
   const setColour = useCallback((key: keyof ColourTokens, value: string) => {
     update((prev) => ({ ...prev, colours: { ...prev.colours, [key]: value } }))
   }, [])
@@ -279,7 +283,8 @@ export function useLayout(grid: GridConfig = DEFAULT_GRID) {
     update((prev) => ({
       elements: preset.elements,
       rowCount: preset.rowCount,
-      chrome: preset.chrome,
+      // Presets don't specify a filter count — keep the user's choice
+      chrome: { ...preset.chrome, sidebarFilters: preset.chrome.sidebarFilters ?? prev.chrome.sidebarFilters },
       colours: prev.colours,
       selectedId: null,
     }))
@@ -302,6 +307,7 @@ export function useLayout(grid: GridConfig = DEFAULT_GRID) {
     setFooter,
     setSidebarCols,
     setSidebarSide,
+    setSidebarFilters,
     setColour,
     resetColours,
     loadPreset,

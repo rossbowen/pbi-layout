@@ -1,6 +1,6 @@
 import { useState } from "react"
-import type { CanvasSizeKey, ChromeConfig, ColourTokens, SidebarCols, SidebarSide, LayoutElement } from "../types"
-import { CANVAS_SIZES, COLOUR_LABELS, DEFAULT_COLOURS } from "../constants"
+import type { CanvasSizeKey, ChromeConfig, ColourTokens, SidebarCols, SidebarFilters, SidebarSide, LayoutElement } from "../types"
+import { CANVAS_SIZES, COLOUR_LABELS, DEFAULT_COLOURS, DEFAULT_SIDEBAR_FILTERS, SIDEBAR_FILTER_OPTIONS } from "../constants"
 import { ColourSwatch } from "./ColourSwatch"
 import type { Preset } from "../presets"
 import { PRESETS } from "../presets"
@@ -36,6 +36,7 @@ interface Props {
   onFooter: (v: boolean) => void
   onSidebarCols: (v: SidebarCols) => void
   onSidebarSide: (v: SidebarSide) => void
+  onSidebarFilters: (v: SidebarFilters) => void
   onRowCount: (n: number) => void
   onCanvasSize: (v: CanvasSizeKey) => void
   onColour: (key: keyof ColourTokens, value: string) => void
@@ -96,6 +97,7 @@ export function AppSidebar({
   onFooter,
   onSidebarCols,
   onSidebarSide,
+  onSidebarFilters,
   onRowCount,
   onCanvasSize,
   onColour,
@@ -180,6 +182,23 @@ export function AppSidebar({
                         </ToggleGroupItem>
                       ))}
                     </ToggleGroup>
+                  )}
+                  {chrome.sidebarCols > 0 && (
+                    <>
+                      <p className="text-xs font-medium text-sidebar-foreground/60 mt-2.5 mb-1.5">Sidebar filters</p>
+                      <ToggleGroup
+                        type="single"
+                        value={String(chrome.sidebarFilters ?? DEFAULT_SIDEBAR_FILTERS)}
+                        onValueChange={(v) => v && onSidebarFilters(Number(v) as SidebarFilters)}
+                        className="w-full"
+                      >
+                        {SIDEBAR_FILTER_OPTIONS.map((n) => (
+                          <ToggleGroupItem key={n} value={String(n)} variant="outline" size="sm" className="flex-1 text-xs">
+                            {n}
+                          </ToggleGroupItem>
+                        ))}
+                      </ToggleGroup>
+                    </>
                   )}
                 </div>
                 {/* Row count */}

@@ -1,5 +1,5 @@
 import type { LayoutElement, ChromeConfig } from "../types"
-import { elementBounds, sidebarWidth, DEFAULT_GRID, type GridConfig } from "../hooks/useGrid"
+import { elementBounds, sidebarFilterBounds, sidebarWidth, DEFAULT_GRID, type GridConfig } from "../hooks/useGrid"
 import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
@@ -76,6 +76,17 @@ export function SpecTable({
       y: top,
       w: sw,
       h: bottom - top,
+    })
+    sidebarFilterBounds(chrome, grid).forEach((b, i) => {
+      rows.push({
+        key: `filter-${i}`,
+        name: `Filter ${i + 1}`,
+        type: "chrome",
+        x: b.x,
+        y: b.y,
+        w: b.width,
+        h: b.height,
+      })
     })
   }
 

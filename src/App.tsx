@@ -371,6 +371,7 @@ export function App() {
           onFooter={layout.setFooter}
           onSidebarCols={layout.setSidebarCols}
           onSidebarSide={layout.setSidebarSide}
+          onSidebarFilters={layout.setSidebarFilters}
           onRowCount={layout.setRowCount}
           onCanvasSize={handleCanvasSize}
           onColour={layout.setColour}

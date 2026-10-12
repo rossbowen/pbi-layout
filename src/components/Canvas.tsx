@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import type { ChromeConfig, ColourTokens, LayoutElement } from "../types"
-import { colBands, colLeft, elementBounds, contentArea, rowTop, sidebarWidth, DEFAULT_GRID } from "../hooks/useGrid"
+import { CANVAS_W } from "../constants"
+import { colBands, colLeft, elementBounds, contentArea, rowTop, sidebarFilterBounds, sidebarWidth, DEFAULT_GRID } from "../hooks/useGrid"
 import type { GridConfig } from "../hooks/useGrid"
 
 /** Relative luminance of a hex colour (WCAG formula) */
@@ -694,6 +695,9 @@ export function Canvas({
           height: displayH,
           background: colours.canvasBg,
           border: `1px solid ${theme === "dark" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.18)"}`,
+          // Keep the border outside the logical canvas so child positions map 1:1 to canvas px
+          boxSizing: "content-box",
+          margin: -1,
           borderRadius: 6,
           overflow: "hidden",
         }}
@@ -891,183 +895,85 @@ export function Canvas({
                   width: sw,
                   height: sidebarH,
                   background: colours.sidebarBg,
-                  borderLeft: isRight
-                    ? `0.5px solid ${contrastColour(colours.sidebarBg) === "#ffffff" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.10)"}`
-                    : undefined,
-                  borderRight: !isRight
-                    ? `0.5px solid ${contrastColour(colours.sidebarBg) === "#ffffff" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.10)"}`
-                    : undefined,
-                  boxSizing: "border-box",
+                  // Inner-edge rule as an inset shadow — a border would offset the filter slots
+                  boxShadow: `inset ${isRight ? 1 : -1}px 0 0 ${contrastColour(colours.sidebarBg) === "#ffffff" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.10)"}`,
                   zIndex: 2,
                 }}
               >
-                {/* Inner content centred on the column area */}
+                {/* Filter slots — drawn from the same bounds the spec table reports */}
                 {(() => {
                   const ink = contrastColour(colours.sidebarBg)
                   const dim = ink === "#ffffff" ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.45)"
                   const rule = ink === "#ffffff" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.10)"
+                  const outline = ink === "#ffffff" ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.3)"
                   const inputBg = ink === "#ffffff" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"
-                  const dot = colours.headerBg
-                  // All sizes in logical px (at 1:1), multiplied by scale for display
-                  const s = scale
-                  const pad = grid.edgeGutter * scale
-                  // Typography rhythm: label=11px text on 16px line, body=12px on 20px line, input=28px tall
-                  const labelLineH = 16 * s // compact label line height
-                  const bodyLineH = 20 * s // body / option line height
-                  const inputH = 28 * s // select box height
-                  const textH = 7 * s // bar height representing text
-                  const microH = 6 * s // smaller label bar
-                  const sectionGap = 16 * s // gap between filter groups
-                  const innerGap = 4 * s // gap within a group (label → control)
-                  return (
+                  // Display px per 1280-baseline px, so the mock slicer keeps its proportions at every canvas size
+                  const u = (grid.w / CANVAS_W) * scale
+                  const sidebarX = isRight ? grid.w - sidebarWidth(chrome.sidebarCols, grid) : 0
+                  const sidebarY = chrome.header ? grid.headerH : 0
+                  // A dropdown slicer: 16px field label, 4px gap, then a select up to 32px tall
+                  const labelH = 16 * u
+                  const innerGap = 4 * u
+                  const labelWidths = ["55%", "40%", "45%", "60%", "35%", "50%", "45%", "55%"]
+                  return sidebarFilterBounds(chrome, grid).map((b, i) => (
                     <div
+                      key={i}
+                      data-filter-slot=""
                       style={{
                         position: "absolute",
-                        left: 0,
-                        width: sw,
-                        top: 20 * s,
-                        paddingLeft: pad,
-                        paddingRight: pad,
-                        boxSizing: "border-box",
+                        left: (b.x - sidebarX) * scale,
+                        top: (b.y - sidebarY) * scale,
+                        width: b.width * scale,
+                        height: b.height * scale,
+                        outline: showGrid ? `1px dashed ${outline}` : undefined,
+                        // Outlines draw outside the box — pull it in so the line sits on the slot's own edge
+                        outlineOffset: -1,
                         display: "flex",
                         flexDirection: "column",
-                        gap: sectionGap,
+                        gap: innerGap,
                       }}
                     >
-                      {/* Section heading — "Filters" */}
-                      <div>
-                        <div style={{ height: 28 * s, display: "flex", alignItems: "center", gap: 5 * s }}>
-                          <span style={{ fontSize: 8, fontWeight: 500, color: ink, letterSpacing: 0.4 }}>Filters</span>
-                        </div>
-                        <div style={{ height: 0.5, background: rule }} />
-                      </div>
-
-                      {/* Dropdown filter */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: innerGap }}>
-                        <div style={{ height: labelLineH, display: "flex", alignItems: "center" }}>
-                          <div
-                            style={{ height: microH, width: "55%", background: dim, borderRadius: 1 * s, opacity: 0.6 }}
-                          />
-                        </div>
+                      <div style={{ height: labelH, flexShrink: 0, display: "flex", alignItems: "center" }}>
                         <div
                           style={{
-                            height: inputH,
-                            background: inputBg,
-                            border: `0.5px solid ${rule}`,
-                            borderRadius: 3 * s,
-                            padding: `0 ${6 * s}px`,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            boxSizing: "border-box",
+                            height: 6 * u,
+                            width: labelWidths[i % labelWidths.length],
+                            background: dim,
+                            borderRadius: 1 * u,
+                            opacity: 0.6,
                           }}
-                        >
-                          <div style={{ display: "flex", gap: 2 * s, alignItems: "center" }}>
-                            {[0, 1, 2, 3].map((j) => (
-                              <div
-                                key={j}
-                                style={{
-                                  width: 3 * s,
-                                  height: 3 * s,
-                                  borderRadius: "50%",
-                                  background: ink,
-                                  opacity: 0.3,
-                                }}
-                              />
-                            ))}
-                          </div>
-                          <svg width={5 * s} height={5 * s} viewBox="0 0 5 5" fill="none" aria-hidden="true">
-                            <path d="M1 2l1.5 1.5L4 2" stroke={dim} strokeWidth="0.8" strokeLinecap="round" />
-                          </svg>
-                        </div>
+                        />
                       </div>
-
-                      {/* Radio group */}
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <div style={{ height: labelLineH, display: "flex", alignItems: "center" }}>
-                          <div
-                            style={{ height: microH, width: "40%", background: dim, borderRadius: 1 * s, opacity: 0.6 }}
-                          />
-                        </div>
-                        {[
-                          { w: "50%", sel: true },
-                          { w: "40%", sel: false },
-                          { w: "45%", sel: false },
-                        ].map(({ w, sel }, i) => (
-                          <div key={i} style={{ height: bodyLineH, display: "flex", alignItems: "center", gap: 6 * s }}>
-                            <div
-                              style={{
-                                width: 8 * s,
-                                height: 8 * s,
-                                borderRadius: "50%",
-                                flexShrink: 0,
-                                border: `${0.75 * s}px solid ${sel ? dot : rule}`,
-                                background: sel ? dot : "transparent",
-                              }}
-                            />
-                            <div
-                              style={{
-                                height: textH,
-                                width: w,
-                                background: ink,
-                                borderRadius: 1 * s,
-                                opacity: sel ? 0.7 : 0.3,
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Slicer — 2×2 button grid */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: innerGap }}>
-                        <div style={{ height: labelLineH, display: "flex", alignItems: "center" }}>
-                          <div
-                            style={{ height: microH, width: "45%", background: dim, borderRadius: 1 * s, opacity: 0.6 }}
-                          />
-                        </div>
-                        {[
-                          [true, false],
-                          [false, false],
-                        ].map((row, ri) => (
-                          <div key={ri} style={{ display: "flex", gap: 4 * s }}>
-                            {row.map((active, ci) => (
-                              <div
-                                key={ci}
-                                style={{
-                                  flex: 1,
-                                  height: 20 * s,
-                                  borderRadius: 2 * s,
-                                  border: `0.5px solid ${active ? dot : rule}`,
-                                  background: active ? dot : inputBg,
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    height: textH,
-                                    width: "55%",
-                                    borderRadius: 1 * s,
-                                    background: active ? contrastColour(dot) : ink,
-                                    opacity: active ? 0.9 : 0.3,
-                                  }}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        ))}
+                      <div
+                        style={{
+                          height: Math.min(32 * u, b.height * scale - labelH - innerGap),
+                          background: inputBg,
+                          border: `0.5px solid ${rule}`,
+                          borderRadius: 3 * u,
+                          padding: `0 ${6 * u}px`,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        <div style={{ height: 7 * u, width: "45%", background: ink, borderRadius: 1 * u, opacity: 0.3 }} />
+                        <svg width={8 * u} height={8 * u} viewBox="0 0 5 5" fill="none" aria-hidden="true">
+                          <path d="M1 2l1.5 1.5L4 2" stroke={dim} strokeWidth="0.8" strokeLinecap="round" />
+                        </svg>
                       </div>
                     </div>
-                  )
+                  ))
                 })()}
                 {/* Dimension label at bottom */}
                 <span
                   style={{
                     position: "absolute",
-                    bottom: 5,
+                    bottom: 0,
                     left: 0,
                     right: 0,
+                    // Sits in the gap below the last filter slot
+                    lineHeight: `${grid.rowGap * scale}px`,
                     textAlign: "center",
                     fontSize: 7,
                     fontFamily: "monospace",

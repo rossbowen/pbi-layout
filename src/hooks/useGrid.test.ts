@@ -10,6 +10,7 @@ import {
   rowTop,
   elementBounds,
   colBands,
+  sidebarFilterBounds,
 } from "./useGrid"
 import type { ChromeConfig } from "../types"
 import { ROW_GAP } from "../constants"
@@ -263,5 +264,43 @@ describe("colBands", () => {
     const bands = colBands(1)
     const last = bands[bands.length - 1]
     expect(last.x + last.w + 17).toBe(1280)
+  })
+})
+
+// ─── Sidebar filter slots ────────────────────────────────────────────────────
+
+describe("sidebarFilterBounds", () => {
+  it("returns no slots without a sidebar", () => {
+    expect(sidebarFilterBounds(HF)).toEqual([])
+  })
+
+  it("defaults to 6 slots, inset by the edge gutter on both sides", () => {
+    const slots = sidebarFilterBounds(SB2)
+    expect(slots).toHaveLength(6)
+    // 2-col sidebar is 203 wide: 17 | 169 | 17
+    expect(slots[0]).toEqual({ x: 17, y: 80, width: 169, height: 80 })
+    expect(slots[5].y + slots[5].height).toBe(660) // bottom of the content area
+  })
+
+  it("fits 8 slots in the same height", () => {
+    const slots = sidebarFilterBounds({ ...SB2, sidebarFilters: 8 })
+    expect(slots).toHaveLength(8)
+    expect(slots[0].height).toBe(55)
+    expect(slots[1].y - (slots[0].y + slots[0].height)).toBe(ROW_GAP)
+    expect(slots[7].y + slots[7].height).toBe(660)
+  })
+
+  it("keeps the edge gutter on the canvas side of a right sidebar", () => {
+    const [first] = sidebarFilterBounds(SB2R)
+    expect(first.x).toBe(1280 - 203 + 17)
+    expect(first.x + first.width).toBe(1280 - 17)
+  })
+
+  it("uses whole-pixel heights that never overrun the content area", () => {
+    const chrome: ChromeConfig = { ...SB3, footer: false, sidebarFilters: 8 }
+    const slots = sidebarFilterBounds(chrome)
+    const area = contentArea(chrome)
+    expect(Number.isInteger(slots[0].height)).toBe(true)
+    expect(slots[7].y + slots[7].height).toBeLessThanOrEqual(area.bottom)
   })
 })

@@ -1,4 +1,4 @@
-import type { ColourTokens, ChromeConfig, CanvasSizeKey } from "./types"
+import type { ColourTokens, ChromeConfig, CanvasSizeKey, SidebarFilters } from "./types"
 
 // ─── Canvas size configurations ───────────────────────────────────────────────
 
@@ -120,11 +120,15 @@ export const DEFAULT_COLOURS: ColourTokens = {
   elementFill: "#F0F0F0",
 }
 
+export const SIDEBAR_FILTER_OPTIONS: SidebarFilters[] = [6, 8]
+export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters = 6
+
 export const DEFAULT_CHROME: ChromeConfig = {
   header: true,
   footer: true,
   sidebarCols: 2,
   sidebarSide: "left",
+  sidebarFilters: DEFAULT_SIDEBAR_FILTERS,
 }
 
 export const COLOUR_LABELS: Record<keyof ColourTokens, string> = {

@@ -1,4 +1,4 @@
-import { COL_COUNT, CANVAS_SIZES, DEFAULT_CANVAS_SIZE } from "../constants"
+import { COL_COUNT, CANVAS_SIZES, DEFAULT_CANVAS_SIZE, DEFAULT_SIDEBAR_FILTERS } from "../constants"
 import type { ChromeConfig, LayoutElement, SidebarCols } from "../types"
 import type { CanvasSizeConfig } from "../constants"
 
@@ -172,6 +172,31 @@ export function elementBounds(
     width: spanWidth(el.colSpan, g),
     height,
   }
+}
+
+// ─── Sidebar filter slots ────────────────────────────────────────────────────
+
+/**
+ * Bounds of each filter slot in the sidebar, top to bottom.
+ * Slots are inset from both sidebar edges by the edge gutter, so on a left
+ * sidebar they start on the canvas margin and stop the same distance short of
+ * the sidebar's inner edge. Vertically they share the content area's top and
+ * bottom, separated by rowGap; heights are whole px, any remainder is left
+ * below the last slot.
+ */
+export function sidebarFilterBounds(chrome: ChromeConfig, g: GridConfig = DEFAULT_GRID): ElementBounds[] {
+  if (chrome.sidebarCols === 0) return []
+  const count = chrome.sidebarFilters ?? DEFAULT_SIDEBAR_FILTERS
+  const sw = sidebarWidth(chrome.sidebarCols, g)
+  const sidebarX = chrome.sidebarSide === "right" ? g.w - sw : 0
+  const area = contentArea(chrome, g)
+  const height = Math.floor((area.height - (count - 1) * g.rowGap) / count)
+  return Array.from({ length: count }, (_, i) => ({
+    x: sidebarX + g.edgeGutter,
+    y: area.top + i * (height + g.rowGap),
+    width: sw - 2 * g.edgeGutter,
+    height,
+  }))
 }
 
 // ─── Snap helpers for drag-resize ────────────────────────────────────────────
