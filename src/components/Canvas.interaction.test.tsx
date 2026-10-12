@@ -51,13 +51,23 @@ describe("Canvas element selection", () => {
     expect(onSelect).toHaveBeenCalledWith("left")
   })
 
-  it("clicking a selected element deselects it", () => {
+  it("clicking a selected element keeps it selected", () => {
     const onSelect = vi.fn()
     const { getByRole } = renderCanvas([LEFT], "left", onSelect)
     const btn = getByRole("button", { name: "Left, row 1, columns 1 to 6" })
     fireEvent.pointerDown(btn.parentElement!)
     fireEvent.click(btn)
-    expect(onSelect).toHaveBeenCalledWith(null)
+    expect(onSelect).not.toHaveBeenCalledWith(null)
+  })
+
+  it("clicking a resize handle keeps the element selected", () => {
+    const onSelect = vi.fn()
+    const { container } = renderCanvas([LEFT], "left", onSelect)
+    const handle = container.querySelector("[data-edge-btn]")!
+    fireEvent.pointerDown(handle)
+    fireEvent.pointerUp(handle)
+    fireEvent.click(handle)
+    expect(onSelect).not.toHaveBeenCalledWith(null)
   })
 
   it("clicking the canvas background deselects", () => {

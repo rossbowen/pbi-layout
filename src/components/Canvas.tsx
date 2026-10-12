@@ -360,9 +360,6 @@ function CanvasElement({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onPointerDown={handlePointerDown}
-      onClick={() => {
-        if (!didMove.current) onSelect(null)
-      }}
       style={{
         position: "absolute",
         left: dx,

@@ -265,11 +265,11 @@ export function AppSidebar({
               </div>
               {PRESETS.length > PRESET_PREVIEW_COUNT && (
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={() => setShowAllPresets((v) => !v)}
                   aria-expanded={showAllPresets}
-                  className="text-xs w-full mt-1.5 text-sidebar-foreground/70"
+                  className="text-xs w-full mt-1.5"
                 >
                   {showAllPresets ? "Show fewer" : `Show all ${PRESETS.length}`}
                 </Button>
@@ -345,7 +345,7 @@ export function AppSidebar({
             <div className="p-3">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-xs w-full text-destructive hover:text-destructive hover:bg-destructive/10">
+                  <Button variant="destructive" size="sm" className="text-xs w-full">
                     Reset everything
                   </Button>
                 </AlertDialogTrigger>
