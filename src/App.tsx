@@ -8,7 +8,6 @@ import { HelpSheet } from "./components/HelpSheet"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { type Theme } from "./theme"
 import { CANVAS_SIZES, DEFAULT_CANVAS_SIZE } from "./constants"
 import type { CanvasSizeKey } from "./types"
@@ -50,7 +49,7 @@ export function App() {
   const [showGrid, setShowGrid] = useState(true)
   const [gridHighlight, setGridHighlight] = useState<"col" | "gap" | "edge" | null>(null)
   const [shareCopied, setShareCopied] = useState(false)
-  const mainRef = useRef<HTMLElement>(null)
+  const mainRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(0)
   // Canvas renders at logical size; display size is logical * BASE_SCALE
   const displayW = sizeConfig.w * sizeConfig.scale
@@ -224,7 +223,32 @@ export function App() {
 
   return (
     <SidebarProvider>
-    <div className="flex flex-col w-full bg-background text-foreground">
+      <AppSidebar
+        chrome={layout.chrome}
+        colours={layout.colours}
+        canvasSize={canvasSize}
+        rowCount={layout.rowCount}
+        elements={layout.elements}
+        selectedId={layout.selectedId}
+        onSelect={layout.selectElement}
+        onHeader={layout.setHeader}
+        onFooter={layout.setFooter}
+        onSidebarCols={layout.setSidebarCols}
+        onSidebarSide={layout.setSidebarSide}
+        onSidebarFilters={layout.setSidebarFilters}
+        onRowCount={layout.setRowCount}
+        onCanvasSize={handleCanvasSize}
+        onColour={layout.setColour}
+        onResetColours={layout.resetColours}
+        onAdd={layout.addElement}
+        onClearElements={layout.clearElements}
+        onLoadPreset={layout.loadPreset}
+        onUpdateElement={layout.updateElement}
+        onRemoveElement={layout.removeElement}
+        onDuplicateElement={layout.duplicateElement}
+        onReset={layout.reset}
+      />
+    <SidebarInset className="min-w-0 h-svh overflow-hidden bg-background text-foreground">
       {/* Top bar */}
       <header
         className="flex items-center justify-between px-4 py-2 border-b shrink-0"
@@ -274,58 +298,35 @@ export function App() {
               </TooltipTrigger>
               <TooltipContent>Redo <KbdGroup><Kbd>⌘</Kbd><Kbd>⇧</Kbd><Kbd>Z</Kbd></KbdGroup></TooltipContent>
             </Tooltip>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
+            <div className="w-px h-4 bg-white/20 mx-1" aria-hidden="true" />
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs gap-1.5 text-white/80 hover:text-white hover:bg-white/10"
+              onClick={handleShare}
+              aria-label="Copy share link"
+            >
+              {shareCopied ? <CheckIcon data-icon="inline-start" /> : <Share2Icon data-icon="inline-start" />}
+              <span className="hidden sm:inline" aria-live="polite">
+                {shareCopied ? "Link copied" : "Share link"}
+              </span>
+            </Button>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs ml-1 text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                >
-                  Reset
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Reset everything?</AlertDialogTitle>
-                  <AlertDialogDescription>This will restore all settings and elements to their defaults.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={layout.reset}>Reset</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-
-            <div className="w-px h-4 bg-white/20 mx-1" aria-hidden="true" />
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="text-white/80 hover:text-white hover:bg-white/10"
-                  onClick={handleShare}
-                  aria-label="Copy share link"
-                >
-                  {shareCopied ? <CheckIcon /> : <Share2Icon />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{shareCopied ? "Link copied!" : "Copy share link"}</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="text-white/80 hover:text-white hover:bg-white/10"
+                  className="text-xs gap-1.5 text-white/80 hover:text-white hover:bg-white/10"
                   onClick={handleExport}
                   aria-label="Export as PBIR"
                 >
-                  <DownloadIcon />
+                  <DownloadIcon data-icon="inline-start" />
+                  <span className="hidden sm:inline">Export PBIR</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Export as PBIR</TooltipContent>
+              <TooltipContent>Download a PBIR folder to open in Power BI Desktop</TooltipContent>
             </Tooltip>
 
             <div className="w-px h-4 bg-white/20 mx-1" aria-hidden="true" />
@@ -357,37 +358,10 @@ export function App() {
         </TooltipProvider>
       </header>
 
-      {/* Body */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        <AppSidebar
-          chrome={layout.chrome}
-          colours={layout.colours}
-          canvasSize={canvasSize}
-          rowCount={layout.rowCount}
-          elements={layout.elements}
-          selectedId={layout.selectedId}
-          onSelect={layout.selectElement}
-          onHeader={layout.setHeader}
-          onFooter={layout.setFooter}
-          onSidebarCols={layout.setSidebarCols}
-          onSidebarSide={layout.setSidebarSide}
-          onSidebarFilters={layout.setSidebarFilters}
-          onRowCount={layout.setRowCount}
-          onCanvasSize={handleCanvasSize}
-          onColour={layout.setColour}
-          onResetColours={layout.resetColours}
-          onAdd={layout.addElement}
-          onClearElements={layout.clearElements}
-          onLoadPreset={layout.loadPreset}
-          onUpdateElement={layout.updateElement}
-          onRemoveElement={layout.removeElement}
-          onDuplicateElement={layout.duplicateElement}
-        />
-
         {/* Canvas + spec */}
-        <SidebarInset
+        <div
           ref={mainRef}
-          className="flex-1 min-w-0 flex flex-col items-center justify-start gap-4 p-6 overflow-auto"
+          className="flex-1 min-h-0 min-w-0 flex flex-col items-center justify-start gap-4 p-6 overflow-auto"
           style={{
             background:
               themeKey === "dark"
@@ -541,27 +515,24 @@ export function App() {
               )
             })()}
 
-            {layout.elements.length > 0 && (
-              <div className="mt-6">
-                <SpecTable
-                  elements={layout.elements}
-                  rowCount={layout.rowCount}
-                  chrome={layout.chrome}
-                  grid={grid}
-                  selectedId={layout.selectedId}
-                  onSelect={layout.selectElement}
-                  onDuplicate={layout.duplicateElement}
-                  onRemove={layout.removeElement}
-                  theme={themeKey}
-                />
-              </div>
-            )}
+            <div className="mt-6">
+              <SpecTable
+                elements={layout.elements}
+                rowCount={layout.rowCount}
+                chrome={layout.chrome}
+                grid={grid}
+                selectedId={layout.selectedId}
+                onSelect={layout.selectElement}
+                onDuplicate={layout.duplicateElement}
+                onRemove={layout.removeElement}
+                theme={themeKey}
+              />
+            </div>
 
           </div>
           {/* end shared column */}
-        </SidebarInset>
-      </div>
-    </div>
+        </div>
+    </SidebarInset>
     </SidebarProvider>
   )
 }

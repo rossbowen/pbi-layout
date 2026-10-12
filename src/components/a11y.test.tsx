@@ -11,7 +11,8 @@ const axeWithOptions = configureAxe({
 
 import { Canvas } from "./Canvas"
 import { SpecTable } from "./SpecTable"
-import { Sidebar } from "./Sidebar"
+import { AppSidebar } from "./Sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
 import { ElementList } from "./ElementList"
 import { LIGHT, DARK } from "../theme"
 import { DEFAULT_CHROME, DEFAULT_COLOURS } from "../constants"
@@ -134,54 +135,68 @@ describe("SpecTable accessibility", () => {
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 
 describe("Sidebar accessibility", () => {
-  it("has no axe violations (light, no selection)", async () => {
+  it("has no axe violations (no selection)", async () => {
     const { container } = render(
-      <Sidebar
-        chrome={chrome}
-        colours={colours}
-        rowCount={2}
-        theme={LIGHT}
-        elements={elements}
-        selectedId={null}
-        onSelect={noop}
-        onHeader={noop}
-        onFooter={noop}
-        onSidebarCols={noop}
-        onSidebarSide={noop}
-        onRowCount={noop}
-        onColour={noop}
-        onAdd={noop}
-        onClearElements={noop}
-        onLoadPreset={noop}
-        onUpdateElement={noop}
-        onRemoveElement={noop}
-      />,
+      <SidebarProvider>
+        <AppSidebar
+          chrome={chrome}
+          colours={colours}
+          canvasSize="1280x720"
+          rowCount={2}
+          elements={elements}
+          selectedId={null}
+          onSelect={noop}
+          onHeader={noop}
+          onFooter={noop}
+          onSidebarCols={noop}
+          onSidebarSide={noop}
+          onSidebarFilters={noop}
+          onRowCount={noop}
+          onCanvasSize={noop}
+          onColour={noop}
+          onResetColours={noop}
+          onAdd={noop}
+          onClearElements={noop}
+          onLoadPreset={noop}
+          onUpdateElement={noop}
+          onRemoveElement={noop}
+          onDuplicateElement={noop}
+          onReset={noop}
+        />
+      </SidebarProvider>,
     )
     expect(await axeWithOptions(container)).toHaveNoViolations()
   })
 
-  it("has no axe violations (dark, with selection)", async () => {
+  it("has no axe violations (with selection)", async () => {
     const { container } = render(
-      <Sidebar
-        chrome={chrome}
-        colours={colours}
-        rowCount={2}
-        theme={DARK}
-        elements={elements}
-        selectedId={elements[0].id}
-        onSelect={noop}
-        onHeader={noop}
-        onFooter={noop}
-        onSidebarCols={noop}
-        onSidebarSide={noop}
-        onRowCount={noop}
-        onColour={noop}
-        onAdd={noop}
-        onClearElements={noop}
-        onLoadPreset={noop}
-        onUpdateElement={noop}
-        onRemoveElement={noop}
-      />,
+      <SidebarProvider>
+        <AppSidebar
+          chrome={chrome}
+          colours={colours}
+          canvasSize="1280x720"
+          rowCount={2}
+          elements={elements}
+          selectedId={elements[0].id}
+          onSelect={noop}
+          onHeader={noop}
+          onFooter={noop}
+          onSidebarCols={noop}
+          onSidebarSide={noop}
+          onSidebarFilters={noop}
+          onRowCount={noop}
+          onCanvasSize={noop}
+          onColour={noop}
+          onResetColours={noop}
+          onAdd={noop}
+          onClearElements={noop}
+          onLoadPreset={noop}
+          onUpdateElement={noop}
+          onRemoveElement={noop}
+          onDuplicateElement={noop}
+          onReset={noop}
+        />
+      </SidebarProvider>,
     )
     expect(await axeWithOptions(container)).toHaveNoViolations()
   })

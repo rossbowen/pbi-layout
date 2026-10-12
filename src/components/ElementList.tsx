@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import type { LayoutElement, ChromeConfig } from "../types"
 import { COL_COUNT } from "../constants"
+import { contentArea } from "../hooks/useGrid"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -111,11 +112,11 @@ interface DetailProps {
   onUpdate: (el: LayoutElement) => void
   onRemove: () => void
   onDuplicate: () => void
-  onRowCount: (n: number) => void
 }
 
-export function ElementDetail({ element, rowCount, chrome, onUpdate, onRemove, onDuplicate, onRowCount }: DetailProps) {
-  const firstCol = chrome.sidebarCols > 0 ? chrome.sidebarCols + 1 : 1
+export function ElementDetail({ element, rowCount, chrome, onUpdate, onRemove, onDuplicate }: DetailProps) {
+  // Columns the sidebar leaves free — it may sit on either side
+  const { firstCol, lastCol } = contentArea(chrome)
 
   function set(patch: Partial<LayoutElement>) {
     onUpdate({ ...element, ...patch })
@@ -144,14 +145,16 @@ export function ElementDetail({ element, rowCount, chrome, onUpdate, onRemove, o
     },
     [firstCol],
   )
+  const clampCol = (col: number) => Math.max(firstCol, Math.min(lastCol, col))
+  const isFree = (col: number) => col >= firstCol && col <= lastCol
 
   const isDragging = dragRange !== null
-  const previewStart = isDragging ? Math.max(firstCol, Math.min(dragRange.anchor, dragRange.current)) : element.colStart
-  const previewEnd = isDragging ? Math.max(firstCol, Math.max(dragRange.anchor, dragRange.current)) : colEnd
+  const previewStart = isDragging ? clampCol(Math.min(dragRange.anchor, dragRange.current)) : element.colStart
+  const previewEnd = isDragging ? clampCol(Math.max(dragRange.anchor, dragRange.current)) : colEnd
 
   const cells = Array.from({ length: COL_COUNT }, (_, i) => {
     const col = i + 1
-    const inSidebar = col < firstCol
+    const inSidebar = !isFree(col)
     const inRange = col >= previewStart && col <= previewEnd
     const isPending = !isDragging && pendingStart !== null && col === pendingStart
     return { col, inSidebar, inRange, isPending }
@@ -176,29 +179,7 @@ export function ElementDetail({ element, rowCount, chrome, onUpdate, onRemove, o
 
       {/* Row */}
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <Label className="text-xs">Rows</Label>
-          <div className="flex gap-1">
-            <Button
-              variant="outline"
-              size="icon-xs"
-              onClick={() => rowCount > 1 && onRowCount(rowCount - 1)}
-              disabled={rowCount <= 1}
-              title="Remove last row"
-            >
-              −
-            </Button>
-            <Button
-              variant="outline"
-              size="icon-xs"
-              onClick={() => rowCount < 4 && onRowCount(rowCount + 1)}
-              disabled={rowCount >= 4}
-              title="Add row"
-            >
-              +
-            </Button>
-          </div>
-        </div>
+        <Label className="text-xs mb-1.5 block">Rows</Label>
         <div className="flex gap-2">
           <div className="flex flex-col gap-1 flex-1">
             <span className="text-[10px] text-muted-foreground">Row</span>
@@ -253,14 +234,13 @@ export function ElementDetail({ element, rowCount, chrome, onUpdate, onRemove, o
           style={{ cursor: "pointer", touchAction: "none", userSelect: "none" }}
           onPointerDown={(e) => {
             const col = colFromX(e.clientX)
-            if (col < firstCol) return
+            if (!isFree(col)) return
             pointerDownX.current = e.clientX
             e.currentTarget.setPointerCapture(e.pointerId)
           }}
           onPointerMove={(e) => {
             if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
-            const col = colFromX(e.clientX)
-            if (col < firstCol) return
+            const col = clampCol(colFromX(e.clientX))
             if (dragRange === null) {
               if (Math.abs(e.clientX - pointerDownX.current) >= DRAG_THRESHOLD) {
                 const anchor = colFromX(pointerDownX.current)
@@ -273,18 +253,18 @@ export function ElementDetail({ element, rowCount, chrome, onUpdate, onRemove, o
           }}
           onPointerUp={(e) => {
             if (dragRange !== null) {
-              const col = Math.max(firstCol, colFromX(e.clientX))
-              const newStart = Math.max(firstCol, Math.min(dragRange.anchor, col))
+              const col = clampCol(colFromX(e.clientX))
+              const newStart = Math.min(dragRange.anchor, col)
               const newEnd = Math.max(dragRange.anchor, col)
               setDragRange(null)
               set({ colStart: newStart, colSpan: newEnd - newStart + 1 })
             } else {
               const col = colFromX(e.clientX)
-              if (col < firstCol) return
+              if (!isFree(col)) return
               if (pendingStart === null) {
                 setPendingStart(col)
               } else {
-                const newStart = Math.max(firstCol, Math.min(pendingStart, col))
+                const newStart = Math.min(pendingStart, col)
                 const newEnd = Math.max(pendingStart, col)
                 setPendingStart(null)
                 set({ colStart: newStart, colSpan: newEnd - newStart + 1 })
@@ -304,9 +284,9 @@ export function ElementDetail({ element, rowCount, chrome, onUpdate, onRemove, o
               }
             } else {
               if (e.shiftKey) {
-                if (colEnd < 12) set({ colSpan: element.colSpan + 1 })
+                if (colEnd < lastCol) set({ colSpan: element.colSpan + 1 })
               } else {
-                const newEnd = Math.min(12, colEnd + 1)
+                const newEnd = Math.min(lastCol, colEnd + 1)
                 set({ colSpan: newEnd - element.colStart + 1 })
               }
             }
@@ -343,7 +323,7 @@ export function ElementDetail({ element, rowCount, chrome, onUpdate, onRemove, o
             label="End"
             value={colEnd}
             min={element.colStart}
-            max={12}
+            max={lastCol}
             onChange={(v) => {
               setPendingStart(null)
               set({ colSpan: v - element.colStart + 1 })

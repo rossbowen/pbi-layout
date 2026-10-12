@@ -66,7 +66,7 @@ export function SpecTable({
     const top = chrome.header ? grid.headerH : 0
     const bottom = grid.h - (chrome.footer ? grid.footerH : 0)
     const isRight = chrome.sidebarSide === "right"
-    const sideLabel = chrome.sidebarCols === 3 ? "wide" : "2-col"
+    const sideLabel = chrome.sidebarCols === 3 ? "3-col" : "2-col"
     rows.push({
       key: "sidebar",
       name: "Sidebar",
